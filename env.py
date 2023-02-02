@@ -2,26 +2,16 @@ import numpy as np
 from PIL import Image  
 import cv2  
 import matplotlib.pyplot as plt  
-import pickle  
-from matplotlib import style  
 import time 
 import tensorflow as tf
 from gym import Env
 from gym.spaces import Discrete, Box
 from IPython.display import clear_output
+#pygame
 
-style.use("ggplot")
 
-SIZE = 20
-HM_EPISODES = 25000
-ENEMY_PENALTY = 300  
-FOOD_REWARD = 25 
 epsilon = 0.25  # randomness
 EPS_DECAY = 0.995  # How fast/slow we want to perform random actions
-SHOW_EVERY = 1000
-MOVE_PENALTY = 1
-
-start_q_table = None 
 
 LEARNING_RATE = 0.1
 DISCOUNT = 0.95
@@ -66,65 +56,26 @@ class AdversarialEnv(Env):
 
     def step(self, action):
         # This will be where we will have to implement 2 different step functions (1: Attacker, 2: Defender)
-        if action == 0:
-            new_obs = self.move(x=0, y=1)
-        elif action == 1:
-            new_obs = self.move(x=1, y=0)
-        elif action == 2:
-            new_obs = self.move(x=1, y=1)
-        elif action == 3:
-            new_obs = self.move(x=-1, y=0)
-        elif action == 4:
-            new_obs = self.move(x=-1, y=1)
-        elif action == 5:
-            new_obs = self.move(x=-1, y=-1)
-        elif action == 6:
-            new_obs = self.move(x=1, y=-1)
-        elif action == 7:
-            new_obs = self.move(x=0, y=-1)
+        self.attacker.step(action)
+        #if action < 5:
+        #    self.defender.step(action+4)
+        #else:
+        #    self.defender.step(action-4)
         
+        attacker_reward = self.attacker.reward_function([self.defender.x, self.defender.y], [self.target.x, self.target.y])
+
+        defender_reward = self.defender.reward_function([self.attacker.x, self.attacker.y])
+
         self.state = np.array([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
 
         self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.y, self.defender.y, self.target.x, self.target.y])
 
-        return self.state, -1, False, None
+        return self.state, attacker_reward, False, None
 
     
-    def move(self, x=False, y=False):
-        # If no value for x, move randomly
-        if not x:
-            self.attacker.x += np.random.randint(-1, 2)
-        else:
-            self.attacker.x += x
-            self.defender.x += np.random.randint(-1, 2)
-        # If no value for y, move randomly
-        if not y:
-            self.attacker.y += np.random.randint(-1, 2)
-        else:
-            self.attacker.y += y
-            self.defender.y += np.random.randint(-1, 2)
-
-        # If we are out of bounds, fix!
-        if self.attacker.x < 0:
-            self.attacker.x = 0
-        elif self.attacker.x > SIZE-1:
-            self.attacker.x = SIZE-1
-        if self.defender.x < 0:
-            self.defender.x = 0
-        elif self.defender.x > SIZE-1:
-            self.defender.x = SIZE-1
-        if self.attacker.y < 0:
-            self.attacker.y = 0
-        elif self.attacker.y > SIZE-1:
-            self.attacker.y = SIZE-1
-        if self.defender.y < 0:
-            self.defender.y = 0
-        elif self.defender.y > SIZE-1:
-            self.defender.y = SIZE-1
-
     def render(self):
         #This creates a single frame
-        video = np.zeros((SIZE, SIZE, 3), dtype=np.uint8) 
+        video = np.zeros((20, 20, 3), dtype=np.uint8) 
         video[int(self.target.x)][int(self.target.y)] = d[Target_N]  
         video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]  
         video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]  
@@ -142,7 +93,72 @@ class Attacker():
         self.y = 0
     
     def step(self, action):
-        pass
+        if action == 0:
+            _ = self.move(x=0, y=1)
+        elif action == 1:
+            _ = self.move(x=1, y=0)
+        elif action == 2:
+            _ = self.move(x=1, y=1)
+        elif action == 3:
+            _ = self.move(x=-1, y=0)
+        elif action == 4:
+            _ = self.move(x=-1, y=1)
+        elif action == 5:
+            _ = self.move(x=-1, y=-1)
+        elif action == 6:
+            _ = self.move(x=1, y=-1)
+        elif action == 7:
+            _ = self.move(x=0, y=-1)
+
+        return True
+
+    def move(self, x=None,  y=None):
+        if x == None:
+            self.x = np.random.randint(-1, 1)
+        else:
+            self.x += x
+
+        if y == None:
+            self.y = np.random.randint(-1, 1)
+        else:
+            self.y += y
+        
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 19:
+            self.x = 19
+
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 19:
+            self.y = 19
+
+        return True
+        
+    def reward_function(self, defender, goal):
+        reward = 0
+
+        if (defender[0]-self.x + defender[1]-self.y) < 10:
+            reward = -1
+        elif (defender[0]-self.x + defender[1]-self.y) < 3:
+            reward = -3
+        elif (defender[0]-self.x + defender[1]-self.y) < 0:
+            reward = -300
+            print('Reached Terminal State, the Denfeder got the Attacker')
+            print(reward)
+
+        if (goal[0]-self.x + goal[1]-self.y) < 10:
+            reward += 1
+        elif (goal[0]-self.x + goal[1]-self.y) < 3:
+            reward += 5
+        elif (goal[0]-self.x + goal[1]-self.y) < 0:
+            reward += 300
+            print('Reached Terminal State, the Attacker got the Goal!!!!!!')
+            print(reward)
+
+        return reward
+
+    
 
 class Defender():
     def __init__(self):
@@ -151,7 +167,58 @@ class Defender():
         self.y = 10
     
     def step(self, action):
-        pass
+        if action == 0:
+            _ = self.move(x=0, y=1)
+        elif action == 1:
+            _ = self.move(x=1, y=0)
+        elif action == 2:
+            _ = self.move(x=1, y=1)
+        elif action == 3:
+            _ = self.move(x=-1, y=0)
+        elif action == 4:
+            _ = self.move(x=-1, y=1)
+        elif action == 5:
+            _ = self.move(x=-1, y=-1)
+        elif action == 6:
+            _ = self.move(x=1, y=-1)
+        elif action == 7:
+            _ = self.move(x=0, y=-1)
+
+        return True
+
+    def move(self, x=None,  y=None):
+        if x == None:
+            self.x = np.random.randint(-1, 1)
+        else:
+            self.x += x
+
+        if y == None:
+            self.y = np.random.randint(-1, 1)
+        else:
+            self.y += y
+        
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 19:
+            self.x = 19
+
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 19:
+            self.y = 19
+
+        return True
+
+    def reward_function(self, attacker):
+        reward = 0
+        if (attacker[0]-self.x + attacker[1]-self.y) < 10:
+            reward += 1
+        elif (attacker[0]-self.x + attacker[1]-self.y) < 3:
+            reward += 5
+        elif (attacker[0]-self.x + attacker[1]-self.y) < 0:
+            reward += 300
+            print(reward)
+        return reward
 
 class Target():
     def __init__(self):
@@ -164,22 +231,13 @@ if __name__ == '__main__':
 
     episode_rewards = []
 
-    for episode in range(HM_EPISODES):
+    for episode in range(25):
         
-        if episode % SHOW_EVERY == 0:
-            print(f"on #{episode}, epsilon is {epsilon}")
-            print(f"{SHOW_EVERY} ep mean: {np.mean(episode_rewards[-SHOW_EVERY:])}")
-            show = True
-        else:
-            show = False
-        
-        done = False
+        obs = env.reset()
         episode_reward = 0
 
-        obs = env.reset()
-
         step = 0
-        while not done:
+        while step <= 2000:
 
             action = np.random.randint(0, 7)
             # Take the action!
@@ -188,30 +246,10 @@ if __name__ == '__main__':
             # ^This will have to be something like 
             # attacker_obs, attacker_reward, done, _ = env.attacker.step(action)  
             # defender_obs, defender_reward, done, _ = env.defender.step(action) 
+            #env.render()
 
-            if env.attacker == env.defender:
-                reward = -ENEMY_PENALTY
-
-            elif env.attacker == env.target:
-                reward = FOOD_REWARD
-
-            else:
-                reward = -MOVE_PENALTY
             episode_reward += reward
-            env.render()
-            if reward == FOOD_REWARD or reward == -ENEMY_PENALTY:
-                break
 
-            if step >= 200:
-                break
             step += 1
-        episode_rewards.append(episode_reward)
-        epsilon *= EPS_DECAY
 
-    moving_avg = np.convolve(episode_rewards, np.ones((SHOW_EVERY,))/SHOW_EVERY, mode='valid')
-
-    plt.plot([i for i in range(len(moving_avg))], moving_avg)
-    plt.ylabel(f"Reward {SHOW_EVERY}ma")
-    plt.xlabel("episode #")
-    plt.show()
-
+        print('Episode Reward: {}'.format(episode_reward))
