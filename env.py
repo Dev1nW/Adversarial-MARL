@@ -84,7 +84,6 @@ class AdversarialEnv(Env):
         plt.imshow(img)  
         plt.pause(0.05)
         plt.show()
-        #cv2.imshow("image", np.array(img))  # show it!
 
 class Attacker():
     def __init__(self):
@@ -94,44 +93,21 @@ class Attacker():
     
     def step(self, action):
         if action == 0:
-            _ = self.move(x=0, y=1)
+            _ = move(x=0, y=1)
         elif action == 1:
-            _ = self.move(x=1, y=0)
+            _ = move(x=1, y=0)
         elif action == 2:
-            _ = self.move(x=1, y=1)
+            _ = move(x=1, y=1)
         elif action == 3:
-            _ = self.move(x=-1, y=0)
+            _ = move(x=-1, y=0)
         elif action == 4:
-            _ = self.move(x=-1, y=1)
+            _ = move(x=-1, y=1)
         elif action == 5:
-            _ = self.move(x=-1, y=-1)
+            _ = move(x=-1, y=-1)
         elif action == 6:
-            _ = self.move(x=1, y=-1)
+            _ = move(x=1, y=-1)
         elif action == 7:
-            _ = self.move(x=0, y=-1)
-
-        return True
-
-    def move(self, x=None,  y=None):
-        if x == None:
-            self.x = np.random.randint(-1, 1)
-        else:
-            self.x += x
-
-        if y == None:
-            self.y = np.random.randint(-1, 1)
-        else:
-            self.y += y
-        
-        if self.x < 0:
-            self.x = 0
-        elif self.x > 19:
-            self.x = 19
-
-        if self.y < 0:
-            self.y = 0
-        elif self.y > 19:
-            self.y = 19
+            _ = move(x=0, y=-1)
 
         return True
         
@@ -156,9 +132,7 @@ class Attacker():
             print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             print(reward)
 
-        return reward
-
-    
+        return reward   
 
 class Defender():
     def __init__(self):
@@ -168,44 +142,21 @@ class Defender():
     
     def step(self, action):
         if action == 0:
-            _ = self.move(x=0, y=1)
+            _ = move(x=0, y=1)
         elif action == 1:
-            _ = self.move(x=1, y=0)
+            _ = move(x=1, y=0)
         elif action == 2:
-            _ = self.move(x=1, y=1)
+            _ = move(x=1, y=1)
         elif action == 3:
-            _ = self.move(x=-1, y=0)
+            _ = move(x=-1, y=0)
         elif action == 4:
-            _ = self.move(x=-1, y=1)
+            _ = move(x=-1, y=1)
         elif action == 5:
-            _ = self.move(x=-1, y=-1)
+            _ = move(x=-1, y=-1)
         elif action == 6:
-            _ = self.move(x=1, y=-1)
+            _ = move(x=1, y=-1)
         elif action == 7:
-            _ = self.move(x=0, y=-1)
-
-        return True
-
-    def move(self, x=None,  y=None):
-        if x == None:
-            self.x = np.random.randint(-1, 1)
-        else:
-            self.x += x
-
-        if y == None:
-            self.y = np.random.randint(-1, 1)
-        else:
-            self.y += y
-        
-        if self.x < 0:
-            self.x = 0
-        elif self.x > 19:
-            self.x = 19
-
-        if self.y < 0:
-            self.y = 0
-        elif self.y > 19:
-            self.y = 19
+            _ = move(x=0, y=-1)
 
         return True
 
@@ -223,8 +174,31 @@ class Defender():
 class Target():
     def __init__(self):
         # Set the initial position to (19, 19)
+        self.x = np.random.randint(17, 20)
+        self.y = np.random.randint(17, 20)
+
+def move(self, x=None,  y=None):
+    if x == None:
+        self.x = np.random.randint(-1, 1)
+    else:
+        self.x += x
+
+    if y == None:
+        self.y = np.random.randint(-1, 1)
+    else:
+        self.y += y
+    
+    if self.x < 0:
+        self.x = 0
+    elif self.x > 19:
         self.x = 19
+
+    if self.y < 0:
+        self.y = 0
+    elif self.y > 19:
         self.y = 19
+
+    return True
 
 if __name__ == '__main__':
     env = AdversarialEnv()
@@ -246,7 +220,7 @@ if __name__ == '__main__':
             # ^This will have to be something like 
             # attacker_obs, attacker_reward, done, _ = env.attacker.step(action)  
             # defender_obs, defender_reward, done, _ = env.defender.step(action) 
-            #env.render()
+            env.render()
 
             episode_reward += reward
 
