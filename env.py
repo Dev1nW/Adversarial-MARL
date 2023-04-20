@@ -3,10 +3,10 @@ from PIL import Image
 import cv2  
 import matplotlib.pyplot as plt  
 import time 
-import tensorflow as tf
 from gym import Env
 from gym.spaces import Discrete, Box
 from IPython.display import clear_output
+import math
 #pygame
 
 
@@ -39,6 +39,9 @@ class AdversarialEnv(Env):
       self.observation_space = Box(low=np.array([self.x_min, self.y_min]), high=np.array([self.x_max, self.y_max]))
 
       self.render_obs = []
+      
+      self.initial_diff_defender = 0
+      self.initial_diff_goal = 0
 
     def reset(self):
 
@@ -93,70 +96,97 @@ class Attacker():
     
     def step(self, action):
         if action == 0:
-            _ = move(x=0, y=1)
+            self.x, self.y = move(x=0, y=1)
         elif action == 1:
-            _ = move(x=1, y=0)
+            self.x, self.y = move(x=1, y=0)
         elif action == 2:
-            _ = move(x=1, y=1)
+            self.x, self.y = move(x=1, y=1)
         elif action == 3:
-            _ = move(x=-1, y=0)
+            self.x, self.y = move(x=-1, y=0)
         elif action == 4:
-            _ = move(x=-1, y=1)
+            self.x, self.y = move(x=-1, y=1)
         elif action == 5:
-            _ = move(x=-1, y=-1)
+            self.x, self.y = move(x=-1, y=-1)
         elif action == 6:
-            _ = move(x=1, y=-1)
+            self.x, self.y = move(x=1, y=-1)
         elif action == 7:
-            _ = move(x=0, y=-1)
+            self.x, self.y = move(x=0, y=-1)
 
         return True
         
     def reward_function(self, defender, goal):
         reward = 0
+        defender_diff_x = abs(defender[0]-self.x)
+        defender_diff_y = abs(defender[1]-self.y)
 
-        if (defender[0]-self.x + defender[1]-self.y) < 10:
-            reward = -1
-        elif (defender[0]-self.x + defender[1]-self.y) < 3:
-            reward = -3
-        elif (defender[0]-self.x + defender[1]-self.y) < 0:
-            reward = -300
-            print('Reached Terminal State, the Denfeder got the Attacker')
+        total_defender_diff = math.sqrt(defender_diff_x**2 + defender_diff_y**2)
+        '''
+        if total_defender_diff <= 0:
+            reward -= 300
+            print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             print(reward)
+        elif total_defender_diff <= 3:
+            reward -= 5
+        elif total_defender_diff <= 10:
+            reward -= 1
+        elif total_defender_diff <= 20:
+            reward -= 0.1
+        elif total_defender_diff <= 25:
+            reward -= 0.01
+        '''
+        reward += total_defender_diff
+        print(total_defender_diff)
+        
 
-        if (goal[0]-self.x + goal[1]-self.y) < 10:
-            reward += 1
-        elif (goal[0]-self.x + goal[1]-self.y) < 3:
-            reward += 5
-        elif (goal[0]-self.x + goal[1]-self.y) < 0:
+        print('Attacker Location: ', (self.x, self.y))
+        print('Defender Location: ', (defender[0], defender[1]))
+        print('Target Location: ', (goal[0], goal[1]))
+        goal_diff_x = abs(goal[0]-self.x)
+        goal_diff_y = abs(goal[1]-self.y)
+
+        total_goal_diff = math.sqrt(goal_diff_x**2 + goal_diff_y**2)
+        print(total_goal_diff)
+        '''
+        if total_goal_diff <= 0:
             reward += 300
             print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             print(reward)
-
+        elif total_goal_diff <= 3:
+            reward += 5.1
+        elif total_goal_diff <= 10:
+            reward += 1.1
+        elif total_goal_diff <= 20:
+            reward += 0.2
+        elif total_goal_diff <= 25:
+            reward += 0.02
+        '''
+        reward -= total_goal_diff
+        
         return reward   
 
 class Defender():
     def __init__(self):
         # Set the initial position to (10, 10)
-        self.x = 10
-        self.y = 10
+        self.x = 5
+        self.y = 5
     
     def step(self, action):
         if action == 0:
-            _ = move(x=0, y=1)
+            self.x, self.y = move(x=0, y=1)
         elif action == 1:
-            _ = move(x=1, y=0)
+            self.x, self.y = move(x=1, y=0)
         elif action == 2:
-            _ = move(x=1, y=1)
+            self.x, self.y = move(x=1, y=1)
         elif action == 3:
-            _ = move(x=-1, y=0)
+            self.x, self.y = move(x=-1, y=0)
         elif action == 4:
-            _ = move(x=-1, y=1)
+            self.x, self.y = move(x=-1, y=1)
         elif action == 5:
-            _ = move(x=-1, y=-1)
+            self.x, self.y = move(x=-1, y=-1)
         elif action == 6:
-            _ = move(x=1, y=-1)
+            self.x, self.y = move(x=1, y=-1)
         elif action == 7:
-            _ = move(x=0, y=-1)
+            self.x, self.y = move(x=0, y=-1)
 
         return True
 
@@ -174,31 +204,31 @@ class Defender():
 class Target():
     def __init__(self):
         # Set the initial position to (19, 19)
-        self.x = np.random.randint(17, 20)
-        self.y = np.random.randint(17, 20)
+        self.x = np.random.randint(7, 10)
+        self.y = np.random.randint(7, 10)
 
-def move(self, x=None,  y=None):
+def move(x=None,  y=None):
     if x == None:
-        self.x = np.random.randint(-1, 1)
+        x = np.random.randint(-1, 1)
     else:
-        self.x += x
+        x += x
 
     if y == None:
-        self.y = np.random.randint(-1, 1)
+        y = np.random.randint(-1, 1)
     else:
-        self.y += y
+        y += y
     
-    if self.x < 0:
-        self.x = 0
-    elif self.x > 19:
-        self.x = 19
+    if x < 0:
+        x = 0
+    elif x > 10:
+        x = 10
 
-    if self.y < 0:
-        self.y = 0
-    elif self.y > 19:
-        self.y = 19
+    if y < 0:
+        y = 0
+    elif y > 10:
+        y = 10
 
-    return True
+    return x, y
 
 if __name__ == '__main__':
     env = AdversarialEnv()
