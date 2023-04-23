@@ -96,21 +96,39 @@ class Attacker():
     
     def step(self, action):
         if action == 0:
-            self.x, self.y = move(x=0, y=1)
+            self.x += 0 
+            self.y += 1
         elif action == 1:
-            self.x, self.y = move(x=1, y=0)
+            self.x += 1 
+            self.y += 0
         elif action == 2:
-            self.x, self.y = move(x=1, y=1)
+            self.x += 1
+            self.y += 1
         elif action == 3:
-            self.x, self.y = move(x=-1, y=0)
+            self.x -= 1 
+            self.y += 0
         elif action == 4:
-            self.x, self.y = move(x=-1, y=1)
+            self.x -= 1 
+            self.y += 1
         elif action == 5:
-            self.x, self.y = move(x=-1, y=-1)
+            self.x -= 1 
+            self.y -= 1
         elif action == 6:
-            self.x, self.y = move(x=1, y=-1)
+            self.x += 1 
+            self.y -= 1
         elif action == 7:
-            self.x, self.y = move(x=0, y=-1)
+            self.x -= 0 
+            self.y -= 1
+
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 10:
+            self.x = 10
+
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 10:
+            self.y = 10
 
         return True
         
@@ -171,24 +189,44 @@ class Defender():
         self.y = 5
     
     def step(self, action):
-        if action == 0:
-            self.x, self.y = move(x=0, y=1)
-        elif action == 1:
-            self.x, self.y = move(x=1, y=0)
-        elif action == 2:
-            self.x, self.y = move(x=1, y=1)
-        elif action == 3:
-            self.x, self.y = move(x=-1, y=0)
-        elif action == 4:
-            self.x, self.y = move(x=-1, y=1)
-        elif action == 5:
-            self.x, self.y = move(x=-1, y=-1)
-        elif action == 6:
-            self.x, self.y = move(x=1, y=-1)
-        elif action == 7:
-            self.x, self.y = move(x=0, y=-1)
+        
+        def step(self, action):
+            if action == 0:
+                self.x += 0 
+                self.y += 1
+            elif action == 1:
+                self.x += 1 
+                self.y += 0
+            elif action == 2:
+                self.x += 1
+                self.y += 1
+            elif action == 3:
+                self.x -= 1 
+                self.y += 0
+            elif action == 4:
+                self.x -= 1 
+                self.y += 1
+            elif action == 5:
+                self.x -= 1 
+                self.y -= 1
+            elif action == 6:
+                self.x += 1 
+                self.y -= 1
+            elif action == 7:
+                self.x -= 0 
+                self.y -= 1
 
-        return True
+            if self.x < 0:
+                self.x = 0
+            elif self.x > 10:
+                self.x = 10
+
+            if self.y < 0:
+                self.y = 0
+            elif self.y > 10:
+                self.y = 10
+
+            return True
 
     def reward_function(self, attacker):
         reward = 0
@@ -207,45 +245,22 @@ class Target():
         self.x = np.random.randint(7, 10)
         self.y = np.random.randint(7, 10)
 
-def move(x=None,  y=None):
-    if x == None:
-        x = np.random.randint(-1, 1)
-    else:
-        x += x
-
-    if y == None:
-        y = np.random.randint(-1, 1)
-    else:
-        y += y
-    
-    if x < 0:
-        x = 0
-    elif x > 10:
-        x = 10
-
-    if y < 0:
-        y = 0
-    elif y > 10:
-        y = 10
-
-    return x, y
-
 if __name__ == '__main__':
     env = AdversarialEnv()
 
     episode_rewards = []
 
-    for episode in range(25):
+    for episode in range(1):
         
         obs = env.reset()
         episode_reward = 0
 
         step = 0
-        while step <= 2000:
+        while step <= 5:
 
             action = np.random.randint(0, 7)
             # Take the action!
-    
+            print(action)
             new_obs, reward, done, _ = env.step(action)     
             # ^This will have to be something like 
             # attacker_obs, attacker_reward, done, _ = env.attacker.step(action)  
