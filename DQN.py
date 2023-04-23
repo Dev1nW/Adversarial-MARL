@@ -25,7 +25,7 @@ for i in range(-SIZE+1, SIZE):
 
 env = AdversarialEnv()
 
-for episode in range(1000):
+for episode in range(10000):
     episode_rewards = []
     obs = env.reset()
     episode_reward = 0

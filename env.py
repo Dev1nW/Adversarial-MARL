@@ -28,9 +28,9 @@ class AdversarialEnv(Env):
     def __init__(self):
       # Create the edge parameters for our Box Environmnet
       self.x_min = 0
-      self.x_max = 10
+      self.x_max = 20
       self.y_min = 0
-      self.y_max = 10
+      self.y_max = 20
 
       # Create our action space such that there is 8 movements (this would be all surrounding boxes to the current box)
       self.action_space = Discrete(8)
@@ -83,7 +83,7 @@ class AdversarialEnv(Env):
     
     def render(self):
         #This creates a single frame
-        video = np.zeros((11, 11, 3), dtype=np.uint8) 
+        video = np.zeros((20, 20, 3), dtype=np.uint8) 
         video[int(self.target.x)][int(self.target.y)] = d[Target_N]  
         video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]  
         video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]  
@@ -250,8 +250,8 @@ class Defender():
 class Target():
     def __init__(self):
         # Set the initial position to (19, 19)
-        self.x = np.random.randint(7, 10)
-        self.y = np.random.randint(7, 10)
+        self.x = np.random.randint(17, 20)
+        self.y = np.random.randint(17, 20)
 
 if __name__ == '__main__':
     env = AdversarialEnv()
