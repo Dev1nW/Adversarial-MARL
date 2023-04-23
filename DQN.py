@@ -4,13 +4,15 @@ from env import AdversarialEnv
 # Git test 2
 
 env = AdversarialEnv()
-
+attempts = 1
+max_steps = 1000
 n_states = 400  # Number of states
 n_actions = env.action_space.n  # Number of actions (0 for "left", 1 for "right")
 
 print(n_actions, n_states)
 gamma = 0.99  # Discount factor
 alpha = 0.1  # Learning rate
+#alpha = 1.0  # Learning rate
 epsilon = 0.1  # Epsilon for epsilon-greedy exploration
 q_learn = True
 EPS_DECAY = 0.9998
@@ -25,7 +27,7 @@ for i in range(-SIZE+1, SIZE):
 
 env = AdversarialEnv()
 
-for episode in range(10000):
+for episode in range(attempts):
     episode_rewards = []
     obs = env.reset()
     episode_reward = 0
@@ -42,7 +44,7 @@ for episode in range(10000):
             action = np.random.randint(0, 8)
 
         #print(action)
-        #env.render()
+        env.render()
         
         # Take the action!
         new_obs, reward, done, _ = env.step(action)
@@ -53,13 +55,21 @@ for episode in range(10000):
         new_q = (1 - 0.001) * current_q + 0.001 * (reward + 0.99 * max_future_q)
         q_table[attacker][action] = new_q
 
-        if step >= 1000:
-            break
+        if step >= max_steps:
+            done = True
+            
+
         episode_reward += reward
         step += 1
+        env.plt_counter = step #this is for the matplot
         obs = new_obs
         
-
-    #print(episode_reward)
-    episode_rewards.append(episode_reward)
+        #print(episode_reward)
+        episode_rewards.append(episode_reward)
     epsilon *= EPS_DECAY
+
+
+#print(episode_rewards)
+
+env.print_episode_rewards(episode_rewards)
+

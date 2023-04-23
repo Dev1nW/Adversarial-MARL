@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import time 
 from gym import Env
 from gym.spaces import Discrete, Box
-from IPython.display import clear_output
+from IPython.display import display, clear_output
 import math
 #pygame
 
@@ -26,22 +26,28 @@ d = {1: (0, 0, 255),  # Attacker (red)
 
 class AdversarialEnv(Env):
     def __init__(self):
-      # Create the edge parameters for our Box Environmnet
-      self.x_min = 0
-      self.x_max = 20
-      self.y_min = 0
-      self.y_max = 20
+        # Create the edge parameters for our Box Environmnet
+        self.x_min = 0
+        self.x_max = 20
+        self.y_min = 0
+        self.y_max = 20
 
-      # Create our action space such that there is 8 movements (this would be all surrounding boxes to the current box)
-      self.action_space = Discrete(8)
+        # Create our action space such that there is 8 movements (this would be all surrounding boxes to the current box)
+        self.action_space = Discrete(8)
 
-      #Create the Observation Space using our provided edge parameters
-      self.observation_space = Box(low=np.array([self.x_min, self.y_min]), high=np.array([self.x_max, self.y_max]))
+        #Create the Observation Space using our provided edge parameters
+        self.observation_space = Box(low=np.array([self.x_min, self.y_min]), high=np.array([self.x_max, self.y_max]))
 
-      self.render_obs = []
-      
-      self.initial_diff_defender = 0
-      self.initial_diff_goal = 0
+        self.render_obs = []
+        
+        self.initial_diff_defender = 0
+        self.initial_diff_goal = 0
+        
+
+        plt.ion() #this is for the plotting 
+        self.fig = None
+        self.ax = None
+        self.plt_counter = 0
 
     def reset(self):
 
@@ -81,17 +87,47 @@ class AdversarialEnv(Env):
         return self.state, attacker_reward, False, None
 
     
+    # def render(self):
+    #     #This creates a single frame
+    #     video = np.zeros((20, 20, 3), dtype=np.uint8) 
+    #     video[int(self.target.x)][int(self.target.y)] = d[Target_N]  
+    #     video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]  
+    #     video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]  
+    #     img = Image.fromarray(video, 'RGB')  
+    #     clear_output(wait=True)
+    #     plt.imshow(img)   #
+    #     plt.pause(0.05)
+    #     plt.show()
     def render(self):
-        #This creates a single frame
-        video = np.zeros((20, 20, 3), dtype=np.uint8) 
-        video[int(self.target.x)][int(self.target.y)] = d[Target_N]  
-        video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]  
-        video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]  
-        img = Image.fromarray(video, 'RGB')  
-        clear_output(wait=True)
-        plt.imshow(img)  
-        plt.pause(0.05)
+        # This creates a single frame
+        video = np.zeros((20, 20, 3), dtype=np.uint8)
+        video[int(self.target.x)][int(self.target.y)] = d[Target_N]
+        video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]
+        video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]
+        img = Image.fromarray(video, 'RGB')
+        
+        if self.fig is None or self.ax is None:
+            self.fig, self.ax = plt.subplots()
+
+        self.ax.clear()
+        self.ax.imshow(img)
+        self.ax.set_title(f"Step: {self.plt_counter}")
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+        plt.pause(0.02)
+        #self.plt_counter += 1
+
+    def print_episode_rewards(self, episode_rewards):
+        plt.figure(figsize=(6, 6))  
+        plt.plot(episode_rewards)
+        plt.xlabel("Episode")
+        plt.ylabel("Episode Reward")
+        plt.title("Episode Rewards Over Time")
         plt.show()
+        plt.waitforbuttonpress()
+        #plt.pause(inf)
+        #plt.pause(10)
+
 
 class Attacker():
     def __init__(self):
@@ -194,8 +230,8 @@ class Attacker():
 class Defender():
     def __init__(self):
         # Set the initial position to (10, 10)
-        self.x = 5
-        self.y = 5
+        self.x = 11
+        self.y = 9
     
     def step(self, action):
         
