@@ -28,9 +28,9 @@ class AdversarialEnv(Env):
     def __init__(self):
       # Create the edge parameters for our Box Environmnet
       self.x_min = 0
-      self.x_max = 20
+      self.x_max = 10
       self.y_min = 0
-      self.y_max = 20
+      self.y_max = 10
 
       # Create our action space such that there is 8 movements (this would be all surrounding boxes to the current box)
       self.action_space = Discrete(8)
@@ -61,13 +61,16 @@ class AdversarialEnv(Env):
 
     def step(self, action):
         # This will be where we will have to implement 2 different step functions (1: Attacker, 2: Defender)
-        self.attacker.step(action)
+        out_of_bounds_flag = self.attacker.step(action)
         #if action < 5:
         #    self.defender.step(action+4)
         #else:
         #    self.defender.step(action-4)
         
         attacker_reward = self.attacker.reward_function([self.defender.x, self.defender.y], [self.target.x, self.target.y])
+
+        if out_of_bounds_flag:
+            attacker_reward = -10
 
         defender_reward = self.defender.reward_function([self.attacker.x, self.attacker.y])
 
@@ -80,7 +83,7 @@ class AdversarialEnv(Env):
     
     def render(self):
         #This creates a single frame
-        video = np.zeros((20, 20, 3), dtype=np.uint8) 
+        video = np.zeros((11, 11, 3), dtype=np.uint8) 
         video[int(self.target.x)][int(self.target.y)] = d[Target_N]  
         video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]  
         video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]  
@@ -122,17 +125,24 @@ class Attacker():
             self.x -= 0 
             self.y -= 1
 
+        if self.x < 0 or self.x > 10 or self.y < 0 or self.y > 10:
+            out_of_bounds_flag = True
+        else:
+            out_of_bounds_flag = False
+
+
         if self.x < 0:
             self.x = 0
         elif self.x > 10:
             self.x = 10
+        
 
         if self.y < 0:
             self.y = 0
         elif self.y > 10:
             self.y = 10
 
-        return True
+        return out_of_bounds_flag
         
     def reward_function(self, defender, goal):
         reward = 0
@@ -140,11 +150,12 @@ class Attacker():
         defender_diff_y = abs(defender[1]-self.y)
 
         total_defender_diff = math.sqrt(defender_diff_x**2 + defender_diff_y**2)
-        '''
+        
         if total_defender_diff <= 0:
             reward -= 300
             print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             print(reward)
+        '''
         elif total_defender_diff <= 3:
             reward -= 5
         elif total_defender_diff <= 10:
@@ -154,23 +165,18 @@ class Attacker():
         elif total_defender_diff <= 25:
             reward -= 0.01
         '''
-        reward += total_defender_diff
-        print(total_defender_diff)
+        reward -= total_defender_diff
         
-
-        print('Attacker Location: ', (self.x, self.y))
-        print('Defender Location: ', (defender[0], defender[1]))
-        print('Target Location: ', (goal[0], goal[1]))
         goal_diff_x = abs(goal[0]-self.x)
         goal_diff_y = abs(goal[1]-self.y)
 
         total_goal_diff = math.sqrt(goal_diff_x**2 + goal_diff_y**2)
-        print(total_goal_diff)
-        '''
+        
         if total_goal_diff <= 0:
             reward += 300
             print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             print(reward)
+        '''
         elif total_goal_diff <= 3:
             reward += 5.1
         elif total_goal_diff <= 10:
@@ -180,7 +186,8 @@ class Attacker():
         elif total_goal_diff <= 25:
             reward += 0.02
         '''
-        reward -= total_goal_diff
+        reward += total_goal_diff
+
         
         return reward   
 
@@ -238,7 +245,6 @@ class Defender():
             reward += 5
         elif (attacker[0]-self.x + attacker[1]-self.y) < 0:
             reward += 300
-            print(reward)
         return reward
 
 class Target():
@@ -262,7 +268,6 @@ if __name__ == '__main__':
 
             action = np.random.randint(0, 7)
             # Take the action!
-            print(action)
             new_obs, reward, done, _ = env.step(action)     
             # ^This will have to be something like 
             # attacker_obs, attacker_reward, done, _ = env.attacker.step(action)  
