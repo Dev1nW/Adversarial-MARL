@@ -1,7 +1,8 @@
 import numpy as np
 from env import AdversarialEnv
 # Define the environment
-# Git test
+# Git test 2
+
 env = AdversarialEnv()
 
 n_states = 400  # Number of states
