@@ -123,7 +123,7 @@ class AdversarialEnv(Env):
         self.ax.set_title(f"Step: {self.plt_counter}")
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
-        plt.pause(0.02)
+        plt.pause(0.01)
         #self.plt_counter += 1
 
     def print_episode_rewards(self, episode_rewards):
