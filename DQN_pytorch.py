@@ -34,9 +34,9 @@ n_states = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
 # DQN parameters
-gamma = 0.99
+gamma = 0.95
 alpha = 0.01
-epsilon = 1.0
+epsilon = 0.2
 epsilon_min = 0.01
 epsilon_decay = 0.999
 batch_size = 32
