@@ -32,11 +32,11 @@ n_actions = env.action_space.n
 
 # DQN parameters
 gamma = 0.99
-alpha = 0.001
+alpha = 0.01
 epsilon = 1.0
 epsilon_min = 0.01
 epsilon_decay = 0.999
-batch_size = 64
+batch_size = 32
 buffer_size = 10000
 update_target_frequency = 1000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -108,7 +108,7 @@ for episode in range(attempts):
             action2 = np.random.randint(0, n_actions)
 
         new_obs, reward, done, _ = env.step(action1, action2)
-
+        reward -= 1
         # Save the transition to the replay buffer
         replay_buffer.push(obs, action1, reward, new_obs, done)
 
