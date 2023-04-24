@@ -40,7 +40,7 @@ batch_size = 64
 buffer_size = 10000
 update_target_frequency = 1000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+print(device)
 # DQN setup
 # policy_net = DQN(n_states, n_actions).to(device)
 # target_net = DQN(n_states, n_actions).to(device)
@@ -103,11 +103,17 @@ for episode in range(attempts):
         obs = new_obs
         episode_reward += reward
         steps += 1
+        env.plt_counter = steps
 
         if len(replay_buffer) >= batch_size:
             # Sample a batch of transitions from the replay buffer
             batch = replay_buffer.sample(batch_size)
             state_batch, action_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
+            state_batch = np.array(state_batch)
+            action_batch = np.array(action_batch)
+            reward_batch = np.array(reward_batch)
+            next_state_batch = np.array(next_state_batch)
+            done_batch = np.array(done_batch)
 
             state_batch = torch.tensor(state_batch, dtype=torch.float32, device=device)
             action_batch = torch.tensor(action_batch, dtype=torch.long, device=device).unsqueeze(1)
