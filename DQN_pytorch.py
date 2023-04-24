@@ -23,6 +23,9 @@ class DQN(nn.Module):
         return x
 
 
+num_W = 0
+num_L = 0
+num_T = 0
 
 # Define the environment
 env = AdversarialEnv()
@@ -176,6 +179,14 @@ for episode in range(attempts):
 
         if steps >= 100:
             done = True
+
+        if done:
+            if obs[0] == obs[2] and obs[1] == obs[3]:
+                num_L += 1
+            elif obs[0] == obs[4] and obs[1] == obs[5]:
+                num_W += 1
+            else:
+                num_T += 1
 
     episode_rewards.append(episode_reward)
 
