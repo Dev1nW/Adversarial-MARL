@@ -96,17 +96,6 @@ class AdversarialEnv(Env):
         return self.state, attacker_reward, done, None
 
     
-    # def render(self):
-    #     #This creates a single frame
-    #     video = np.zeros((20, 20, 3), dtype=np.uint8) 
-    #     video[int(self.target.x)][int(self.target.y)] = d[Target_N]  
-    #     video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]  
-    #     video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]  
-    #     img = Image.fromarray(video, 'RGB')  
-    #     clear_output(wait=True)
-    #     plt.imshow(img)   #
-    #     plt.pause(0.05)
-    #     plt.show()
     def render(self):
         # This creates a single frame
         video = np.zeros((11, 11, 3), dtype=np.uint8)
@@ -123,7 +112,7 @@ class AdversarialEnv(Env):
         self.ax.set_title(f"Step: {self.plt_counter}")
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
-        plt.pause(0.01)
+        plt.pause(1000)
         #self.plt_counter += 1
 
     def print_episode_rewards(self, episode_rewards):
