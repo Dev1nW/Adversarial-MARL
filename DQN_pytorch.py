@@ -1,4 +1,3 @@
-# I asked Chat GPT for tips and it said to try this 
 
 import numpy as np
 from env import AdversarialEnv
@@ -8,6 +7,8 @@ import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+import matplotlib.pyplot as plt
 
 class DQN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -29,7 +30,7 @@ num_T = 0
 
 # Define the environment
 env = AdversarialEnv()
-attempts = 500
+attempts = 50
 n_states = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
@@ -193,7 +194,28 @@ for episode in range(attempts):
     # Decay epsilon for epsilon-greedy exploration
     epsilon = max(epsilon_min, epsilon * epsilon_decay)
 
-    print(f"Episode {episode}: Reward {episode_reward}")
+    #print(f"Episode {episode}: Reward {episode_reward}")
 
-env.print_episode_rewards(episode_rewards)
 
+
+
+# Plot the episode rewards over time
+plt.figure(figsize=(6, 6))  
+plt.plot(episode_rewards)
+plt.xlabel("Episode")
+plt.ylabel("Episode Reward")
+plt.title("Episode Rewards Over Time")
+plt.show()
+plt.pause(100000) 
+# Plot the bar graph for game results
+plt.figure(figsize=(6, 6))  
+labels = ['Defender wins', 'Attacker wins', 'Ties']
+values = [num_L, num_W, num_T]
+colors = ['red', 'blue', 'green']
+
+plt.bar(labels, values, color=colors)
+plt.title('Game Results')
+plt.xlabel('Result')
+plt.ylabel('Number of Games')
+plt.show()
+plt.pause(100000) 
