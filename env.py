@@ -88,7 +88,7 @@ class AdversarialEnv(Env):
         self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
 
 
-        if (self.attacker.x == self.target.x and self.attacker.y == self.target.y) or (self.attacker.x == self.target.x and self.defender.x == self.defender.y):
+        if (self.attacker.x == self.target.x and self.attacker.y == self.target.y) or (self.attacker.x == self.defender.x and self.attacker.y == self.defender.y):
             done = True
         else:
             done = False
@@ -210,7 +210,7 @@ class Attacker():
         elif total_defender_diff <= 25:
             reward -= 0.01
         '''
-        reward -= 0.5/(total_defender_diff+0.01)
+        reward -= 1/(total_defender_diff+0.01)
         
         goal_diff_x = abs(goal[0]-self.x)
         goal_diff_y = abs(goal[1]-self.y)
@@ -297,6 +297,7 @@ class Defender():
             reward += 300
             print('Reached Terminal State, the Defender got the Attacker!!!!!!')
             print(reward)
+        '''
         elif total_defender_diff <= 3:
             reward -= 10
         elif total_defender_diff <= 10:
@@ -305,8 +306,8 @@ class Defender():
             reward -= 0.1
         elif total_defender_diff <= 25:
             reward -= 0.01
-
-        reward -= 1/(total_defender_diff+0.1)
+        '''
+        reward += 1/(total_defender_diff+0.1)
         
         goal_diff_x = abs(goal[0]-attacker[0])
         goal_diff_y = abs(goal[1]-attacker[1])
@@ -317,6 +318,7 @@ class Defender():
             reward -= 300
             print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             print(reward)
+        '''
         elif total_goal_diff <= 3:
             reward += 11
         elif total_goal_diff <= 10:
@@ -325,8 +327,9 @@ class Defender():
             reward += 0.1
         elif total_goal_diff <= 25:
             reward += 0.01
+        '''
 
-        reward += 1/(total_goal_diff+0.1)
+        reward -= 1/(total_goal_diff+0.1)
 
         #print(total_defender_diff, total_goal_diff)
         
@@ -335,8 +338,8 @@ class Defender():
 class Target():
     def __init__(self):
         # Set the initial position to (19, 19)
-        self.x = np.random.randint(7, 10)
-        self.y = np.random.randint(7, 10)
+        self.x = 10#np.random.randint(7, 10)
+        self.y = 10#np.random.randint(7, 10)
 
 if __name__ == '__main__':
     env = AdversarialEnv()
