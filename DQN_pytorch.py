@@ -29,19 +29,21 @@ num_T = 0
 
 # Define the environment
 env = AdversarialEnv()
-attempts = 500
+attempts = 1000
 n_states = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
 # DQN parameters
-gamma = 0.95
-alpha = 0.01
-epsilon = 0.2
+gamma = 0.95 # Discount Factor (Larger = care more about future reward)
+alpha = 0.018 # Attacker Learning Rate
+epsilon = 0.1 # Randomization 
 epsilon_min = 0.01
-epsilon_decay = 0.999
+epsilon_decay = 0.2
 batch_size = 32
 buffer_size = 10000
 update_target_frequency = 1000
+
+def_alpha = 0.000001 # Defender Learning Rate
 
 # Check PyTorch has access to MPS (Metal Performance Shader, Apple's GPU architecture)
 print(f"Is MPS (Metal Performance Shader) built? {torch.backends.mps.is_built()}")
@@ -53,6 +55,7 @@ print(f"Using device: {device}")
 
 if device == "cpu":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu"
 print(device)
 # DQN setup
 # policy_net = DQN(n_states, n_actions).to(device)
@@ -70,7 +73,7 @@ target_net1.eval()
 policy_net2 = DQN(6, hidden_size, n_actions).to(device)
 target_net2 = DQN(6, hidden_size, n_actions).to(device)
 
-optimizer2 = optim.Adam(policy_net2.parameters(), lr=0.0001)
+optimizer2 = optim.Adam(policy_net2.parameters(), lr=def_alpha)
 
 target_net2.load_state_dict(policy_net2.state_dict())
 target_net2.eval()
@@ -189,10 +192,13 @@ for episode in range(attempts):
 
         if done:
             if obs[0] == obs[2] and obs[1] == obs[3]:
+                print("Loss")
                 num_L += 1
             elif obs[0] == obs[4] and obs[1] == obs[5]:
+                print("Win")
                 num_W += 1
             else:
+                print("Tie")
                 num_T += 1
 
     episode_rewards.append(episode_reward1)
