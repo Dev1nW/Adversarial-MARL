@@ -115,16 +115,16 @@ class AdversarialEnv(Env):
         plt.pause(0.01)
         #self.plt_counter += 1
 
-    def print_episode_rewards(self, episode_rewards):
-        plt.figure(figsize=(6, 6))  
-        plt.plot(episode_rewards)
-        plt.xlabel("Episode")
-        plt.ylabel("Episode Reward")
-        plt.title("Episode Rewards Over Time")
-        plt.show()
-       # plt.waitforbuttonpress()
-        #plt.pause(inf)
-        plt.pause(100000)
+    # def print_episode_rewards(self, episode_rewards):
+    #     plt.figure(figsize=(6, 6))  
+    #     plt.plot(episode_rewards)
+    #     plt.xlabel("Episode")
+    #     plt.ylabel("Episode Reward")
+    #     plt.title("Episode Rewards Over Time")
+    #     plt.show()
+    #    # plt.waitforbuttonpress()
+    #     #plt.pause(inf)
+    #     plt.pause(100000)
 
 
 class Attacker():

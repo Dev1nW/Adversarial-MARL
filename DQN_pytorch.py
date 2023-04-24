@@ -4,7 +4,7 @@ import numpy as np
 from env import AdversarialEnv
 import torch
 import random
-
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -70,7 +70,7 @@ target_net1.eval()
 policy_net2 = DQN(6, hidden_size, n_actions).to(device)
 target_net2 = DQN(6, hidden_size, n_actions).to(device)
 
-optimizer2 = optim.Adam(policy_net2.parameters(), lr=0.003)
+optimizer2 = optim.Adam(policy_net2.parameters(), lr=0.001)
 
 target_net2.load_state_dict(policy_net2.state_dict())
 target_net2.eval()
@@ -200,8 +200,28 @@ for episode in range(attempts):
     # Decay epsilon for epsilon-greedy exploration
     epsilon = max(epsilon_min, epsilon * epsilon_decay)
 
-    print(f"Episode {episode}: Reward for Attacker: {episode_reward1}")
-    print(f"Episode {episode}: Reward for Defender: {episode_reward2}")
+    #print(f"Episode {episode}: Reward for Attacker: {episode_reward1}")
+    #print(f"Episode {episode}: Reward for Defender: {episode_reward2}")
 
-env.print_episode_rewards(episode_rewards)
+#env.print_episode_rewards(episode_rewards)
 
+# Plot the episode rewards over time
+plt.figure(figsize=(6, 6))  
+plt.plot(episode_rewards)
+plt.xlabel("Episode")
+plt.ylabel("Episode Reward")
+plt.title("Attacker Reward per Episode")
+plt.show()
+
+# Plot the bar graph for game results
+plt.figure(figsize=(6, 6))  
+labels = ['Defender wins', 'Attacker wins', 'Ties']
+values = [num_L, num_W, num_T]
+colors = ['red', 'blue', 'gray']
+
+plt.bar(labels, values, color=colors)
+plt.title('Game Results')
+plt.xlabel('Result')
+plt.ylabel('Number of Games')
+plt.show()
+plt.pause(100000)
