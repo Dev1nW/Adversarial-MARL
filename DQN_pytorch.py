@@ -67,7 +67,7 @@ target_net1.eval()
 policy_net2 = DQN(6, hidden_size, n_actions).to(device)
 target_net2 = DQN(6, hidden_size, n_actions).to(device)
 
-optimizer2 = optim.Adam(policy_net2.parameters(), lr=alpha)
+optimizer2 = optim.Adam(policy_net2.parameters(), lr=0.003)
 
 target_net2.load_state_dict(policy_net2.state_dict())
 target_net2.eval()
