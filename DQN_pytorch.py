@@ -82,10 +82,10 @@ class ReplayBuffer:
         self.buffer = []
         self.position = 0
 
-    def push(self, state, action, reward, next_state, done):
+    def push(self, state, action1, action2, reward1, reward2, next_state, done):
         if len(self.buffer) < self.capacity:
             self.buffer.append(None)
-        self.buffer[self.position] = (state, action, reward, next_state, done)
+        self.buffer[self.position] = (state, action1, action2, reward1, reward2, next_state, done)
         self.position = (self.position + 1) % self.capacity
 
     def sample(self, batch_size):
@@ -105,7 +105,8 @@ episode_rewards = []
 
 for episode in range(attempts):
     obs = env.reset()
-    episode_reward = 0
+    episode_reward1 = 0
+    episode_reward2 = 0
     done = False
     steps = 0
 
@@ -120,29 +121,35 @@ for episode in range(attempts):
             action1 = np.random.randint(0, n_actions)
             action2 = np.random.randint(0, n_actions)
 
-        new_obs, reward, done, _ = env.step(action1, action2)
-        reward -= 1
+        new_obs, reward1, reward2, done, _ = env.step(action1, action2)
+        reward1 -= 1
+        reward2 -= 1
         # Save the transition to the replay buffer
-        replay_buffer.push(obs, action1, reward, new_obs, done)
+        replay_buffer.push(obs, action1, action2, reward1, reward2, new_obs, done)
 
         obs = new_obs
-        episode_reward += reward
+        episode_reward1 += reward1
+        episode_reward2 += reward2
         steps += 1
         env.plt_counter = steps
 
         if len(replay_buffer) >= batch_size:
             # Sample a batch of transitions from the replay buffer
             batch = replay_buffer.sample(batch_size)
-            state_batch, action_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
+            state_batch, action_batch1, action_batch2, reward_batch1, reward_batch2, next_state_batch, done_batch = zip(*batch)
             state_batch = np.array(state_batch)
-            action_batch = np.array(action_batch)
-            reward_batch = np.array(reward_batch)
+            action_batch1 = np.array(action_batch1)
+            action_batch2 = np.array(action_batch2)
+            reward_batch1 = np.array(reward_batch1)
+            reward_batch1 = np.array(reward_batch2)
             next_state_batch = np.array(next_state_batch)
             done_batch = np.array(done_batch)
 
             state_batch = torch.tensor(state_batch, dtype=torch.float32, device=device)
-            action_batch = torch.tensor(action_batch, dtype=torch.long, device=device).unsqueeze(1)
-            reward_batch = torch.tensor(reward_batch, dtype=torch.float32, device=device)
+            action_batch1 = torch.tensor(action_batch1, dtype=torch.long, device=device).unsqueeze(1)
+            reward_batch1 = torch.tensor(reward_batch1, dtype=torch.float32, device=device)
+            action_batch2 = torch.tensor(action_batch2, dtype=torch.long, device=device).unsqueeze(1)
+            reward_batch2 = torch.tensor(reward_batch2, dtype=torch.float32, device=device)
             next_state_batch = torch.tensor(next_state_batch, dtype=torch.float32, device=device)
             done_batch = torch.tensor(done_batch, dtype=torch.float32, device=device)
 
@@ -152,12 +159,12 @@ for episode in range(attempts):
                 next_state_values2 = target_net1(next_state_batch).max(1)[0]
 
             # Compute the target Q-values
-            target_q_values1 = reward_batch + gamma * next_state_values1 * (1 - done_batch)
-            target_q_values2 = reward_batch + gamma * next_state_values2 * (1 - done_batch)
+            target_q_values1 = reward_batch1 + gamma * next_state_values1 * (1 - done_batch)
+            target_q_values2 = reward_batch2 + gamma * next_state_values2 * (1 - done_batch)
 
             # Compute the predicted Q-values
-            predicted_q_values1 = policy_net1(state_batch).gather(1, action_batch).squeeze()
-            predicted_q_values2 = policy_net2(state_batch).gather(1, action_batch).squeeze()
+            predicted_q_values1 = policy_net1(state_batch).gather(1, action_batch1).squeeze()
+            predicted_q_values2 = policy_net2(state_batch).gather(1, action_batch2).squeeze()
 
             # Compute the loss
             loss1 = loss_fn(predicted_q_values1, target_q_values1)
@@ -188,12 +195,13 @@ for episode in range(attempts):
             else:
                 num_T += 1
 
-    episode_rewards.append(episode_reward)
+    episode_rewards.append(episode_reward1)
 
     # Decay epsilon for epsilon-greedy exploration
     epsilon = max(epsilon_min, epsilon * epsilon_decay)
 
-    print(f"Episode {episode}: Reward {episode_reward}")
+    print(f"Episode {episode}: Reward for Attacker: {episode_reward1}")
+    print(f"Episode {episode}: Reward for Defender: {episode_reward2}")
 
 env.print_episode_rewards(episode_rewards)
 

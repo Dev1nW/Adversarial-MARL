@@ -32,9 +32,11 @@ for i in range(-SIZE+1, SIZE):
 env = AdversarialEnv()
 
 for episode in range(attempts):
-    episode_rewards = []
+    episode_rewards1 = []
+    episode_rewards2 = []
     obs = env.reset()
-    episode_reward = 0
+    episode_reward1 = 0
+    episode_reward2 = 0
     done = False 
     step = 0 
     while done == False:
@@ -54,31 +56,32 @@ for episode in range(attempts):
         env.render()
         
         # Take the action!
-        new_obs, reward, done, _ = env.step(action1, action2)
+        new_obs, reward1, reward2, done, _ = env.step(action1, action2)
         
         max_future_q_attacker = np.max(q_table_attacker[(new_obs[0], new_obs[1])])
         current_q_attacker = q_table_attacker[attacker][action1]
 
-        new_q_attacker = (1 - lr) * current_q_attacker + lr * (reward + gamma * max_future_q_attacker)
+        new_q_attacker = (1 - lr) * current_q_attacker + lr * (reward1 + gamma * max_future_q_attacker)
         q_table_attacker[attacker][action1] = new_q_attacker
 
         max_future_q_defender = np.max(q_table_defender[(new_obs[2], new_obs[3])])
         current_q_defender = q_table_defender[defender][action2]
 
-        new_q_defender = (1 - lr) * current_q_defender + lr * (reward + gamma * max_future_q_defender)
+        new_q_defender = (1 - lr) * current_q_defender + lr * (reward2 + gamma * max_future_q_defender)
         q_table_defender[defender][action2] = new_q_defender
 
         if step >= max_steps:
             done = True
             
 
-        episode_reward += reward
+        episode_reward1 += reward1
         step += 1
         env.plt_counter = step #this is for the matplot
         obs = new_obs
         
         #print(episode_reward)
-        episode_rewards.append(episode_reward)
+        episode_rewards1.append(episode_reward1)
+        episode_rewards2.append(episode_reward2)
     epsilon *= EPS_DECAY
 
 

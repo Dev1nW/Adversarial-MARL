@@ -93,7 +93,7 @@ class AdversarialEnv(Env):
         else:
             done = False
 
-        return self.state, attacker_reward, done, None
+        return self.state, attacker_reward, defender_reward, done, None
 
     
     def render(self):
