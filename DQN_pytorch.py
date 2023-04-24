@@ -39,7 +39,17 @@ epsilon_decay = 0.999
 batch_size = 64
 buffer_size = 10000
 update_target_frequency = 1000
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Check PyTorch has access to MPS (Metal Performance Shader, Apple's GPU architecture)
+print(f"Is MPS (Metal Performance Shader) built? {torch.backends.mps.is_built()}")
+print(f"Is MPS available? {torch.backends.mps.is_available()}")
+
+# Set the device      
+device = "mps" if torch.backends.mps.is_available() else "cpu"
+print(f"Using device: {device}")
+
+if device == "cpu":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 # DQN setup
 # policy_net = DQN(n_states, n_actions).to(device)

@@ -328,7 +328,7 @@ class Defender():
 
         reward += 1/(total_goal_diff+0.1)
 
-        print(total_defender_diff, total_goal_diff)
+        #print(total_defender_diff, total_goal_diff)
         
         return reward
 
