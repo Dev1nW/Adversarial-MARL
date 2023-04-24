@@ -45,12 +45,22 @@ print(device)
 # policy_net = DQN(n_states, n_actions).to(device)
 # target_net = DQN(n_states, n_actions).to(device)
 hidden_size = 6
-policy_net = DQN(6, hidden_size, n_actions).to(device)
-target_net = DQN(6, hidden_size, n_actions).to(device)
-optimizer = optim.Adam(policy_net.parameters(), lr=alpha)
+policy_net1 = DQN(6, hidden_size, n_actions).to(device)
+target_net1 = DQN(6, hidden_size, n_actions).to(device)
+
+optimizer1 = optim.Adam(policy_net1.parameters(), lr=alpha)
 loss_fn = nn.MSELoss()
-target_net.load_state_dict(policy_net.state_dict())
-target_net.eval()
+
+target_net1.load_state_dict(policy_net1.state_dict())
+target_net1.eval()
+
+policy_net2 = DQN(6, hidden_size, n_actions).to(device)
+target_net2 = DQN(6, hidden_size, n_actions).to(device)
+
+optimizer2 = optim.Adam(policy_net2.parameters(), lr=alpha)
+
+target_net2.load_state_dict(policy_net2.state_dict())
+target_net2.eval()
 
 # Experience replay buffer
 class ReplayBuffer:
@@ -91,14 +101,16 @@ for episode in range(attempts):
 
         state_tensor = torch.tensor(obs, dtype=torch.float32, device=device).unsqueeze(0)
         with torch.no_grad():
-            action = policy_net(state_tensor).argmax(dim=1).item()
+            action1 = policy_net1(state_tensor).argmax(dim=1).item()
+            action2 = policy_net2(state_tensor).argmax(dim=1).item()
         if np.random.random() < epsilon:
-            action = np.random.randint(0, n_actions)
+            action1 = np.random.randint(0, n_actions)
+            action2 = np.random.randint(0, n_actions)
 
-        new_obs, reward, done, _ = env.step(action)
+        new_obs, reward, done, _ = env.step(action1, action2)
 
         # Save the transition to the replay buffer
-        replay_buffer.push(obs, action, reward, new_obs, done)
+        replay_buffer.push(obs, action1, reward, new_obs, done)
 
         obs = new_obs
         episode_reward += reward
@@ -123,25 +135,34 @@ for episode in range(attempts):
 
             # Compute the Q-values of the next states
             with torch.no_grad():
-                next_state_values = target_net(next_state_batch).max(1)[0]
+                next_state_values1 = target_net1(next_state_batch).max(1)[0]
+                next_state_values2 = target_net1(next_state_batch).max(1)[0]
 
             # Compute the target Q-values
-            target_q_values = reward_batch + gamma * next_state_values * (1 - done_batch)
+            target_q_values1 = reward_batch + gamma * next_state_values1 * (1 - done_batch)
+            target_q_values2 = reward_batch + gamma * next_state_values2 * (1 - done_batch)
 
             # Compute the predicted Q-values
-            predicted_q_values = policy_net(state_batch).gather(1, action_batch).squeeze()
+            predicted_q_values1 = policy_net1(state_batch).gather(1, action_batch).squeeze()
+            predicted_q_values2 = policy_net2(state_batch).gather(1, action_batch).squeeze()
 
             # Compute the loss
-            loss = loss_fn(predicted_q_values, target_q_values)
+            loss1 = loss_fn(predicted_q_values1, target_q_values1)
+            loss2 = loss_fn(predicted_q_values2, target_q_values2)
 
             # Optimize the policy network
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            optimizer1.zero_grad()
+            loss1.backward()
+            optimizer1.step()
+
+            optimizer2.zero_grad()
+            loss2.backward()
+            optimizer2.step()
 
             # Update the target network
             if steps % update_target_frequency == 0:
-                update_target(policy_net, target_net)
+                update_target(policy_net1, target_net1)
+                update_target(policy_net2, target_net2)
 
         if steps >= 100:
             done = True
