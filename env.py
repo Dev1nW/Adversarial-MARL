@@ -187,7 +187,7 @@ class Attacker():
         
         if total_defender_diff <= 0:
             reward -= 300
-            #print('Reached Terminal State, the Defender got the Attacker!!!!!!')
+            print('Reached Terminal State, the Defender got the Attacker!!!!!!')
             #print(reward)
         '''
         elif total_defender_diff <= 3:
@@ -208,7 +208,7 @@ class Attacker():
         
         if total_goal_diff <= 0:
             reward += 300
-            #print('Reached Terminal State, the Attacker got the Goal!!!!!!')
+            print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             #print(reward)
         '''
         elif total_goal_diff <= 3:
