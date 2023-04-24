@@ -4,25 +4,29 @@ from env import AdversarialEnv
 # Git test 2
 
 env = AdversarialEnv()
-attempts = 1
+attempts = 10
 max_steps = 1000
 n_states = 400  # Number of states
 n_actions = env.action_space.n  # Number of actions (0 for "left", 1 for "right")
 
 print(n_actions, n_states)
 gamma = 0.99  # Discount factor
-alpha = 0.1  # Learning rate
-#alpha = 1.0  # Learning rate
+lr = 0.01  # Learning rate
 epsilon = 0.1  # Epsilon for epsilon-greedy exploration
 q_learn = True
 EPS_DECAY = 0.9998
 
 
 SIZE = 20
-q_table = {}
+q_table_attacker = {}
 for i in range(-SIZE+1, SIZE):
     for ii in range(-SIZE+1, SIZE):
-        q_table[(i, ii)] = [1 for i in range(8)]
+        q_table_attacker[(i, ii)] = [0 for i in range(8)]
+
+q_table_defender = {}
+for i in range(-SIZE+1, SIZE):
+    for ii in range(-SIZE+1, SIZE):
+        q_table_defender[(i, ii)] = [0 for i in range(8)]
 
 
 env = AdversarialEnv()
@@ -33,27 +37,36 @@ for episode in range(attempts):
     episode_reward = 0
     done = False 
     step = 0 
-    while not done:
+    while done == False:
     
         attacker = (obs[0], obs[1])
+        defender = (obs[2], obs[3])
         
         if np.random.random() > epsilon:
             # GET THE ACTION
-            action = np.argmax(q_table[attacker])
+            action1 = np.argmax(q_table_attacker[attacker])
+            action2 = np.argmax(q_table_defender[defender])
         else:
-            action = np.random.randint(0, 8)
+            action1 = np.random.randint(0, 8)
+            action2 = np.random.randint(0, 8)
 
         #print(action)
         env.render()
         
         # Take the action!
-        new_obs, reward, done, _ = env.step(action)
+        new_obs, reward, done, _ = env.step(action1, action2)
         
-        max_future_q = np.max(q_table[(new_obs[0], new_obs[1])])
-        current_q = q_table[attacker][action]
+        max_future_q_attacker = np.max(q_table_attacker[(new_obs[0], new_obs[1])])
+        current_q_attacker = q_table_attacker[attacker][action1]
 
-        new_q = (1 - 0.001) * current_q + 0.001 * (reward + 0.99 * max_future_q)
-        q_table[attacker][action] = new_q
+        new_q_attacker = (1 - lr) * current_q_attacker + lr * (reward + gamma * max_future_q_attacker)
+        q_table_attacker[attacker][action1] = new_q_attacker
+
+        max_future_q_defender = np.max(q_table_defender[(new_obs[2], new_obs[3])])
+        current_q_defender = q_table_defender[defender][action2]
+
+        new_q_defender = (1 - lr) * current_q_defender + lr * (reward + gamma * max_future_q_defender)
+        q_table_defender[defender][action2] = new_q_defender
 
         if step >= max_steps:
             done = True

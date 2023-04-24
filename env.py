@@ -10,10 +10,10 @@ import math
 #pygame
 
 
-epsilon = 0.25  # randomness
+epsilon = 0.3  # randomness
 EPS_DECAY = 0.995  # How fast/slow we want to perform random actions
 
-LEARNING_RATE = 0.1
+LEARNING_RATE = 0.01
 DISCOUNT = 0.95
 
 Attacker_N = 1  # Attacker key in dict
@@ -28,9 +28,9 @@ class AdversarialEnv(Env):
     def __init__(self):
         # Create the edge parameters for our Box Environmnet
         self.x_min = 0
-        self.x_max = 20
+        self.x_max = 10
         self.y_min = 0
-        self.y_max = 20
+        self.y_max = 10
 
         # Create our action space such that there is 8 movements (this would be all surrounding boxes to the current box)
         self.action_space = Discrete(8)
@@ -65,11 +65,11 @@ class AdversarialEnv(Env):
 
         return self.state
 
-    def step(self, action):
+    def step(self, action1, action2):
         # This will be where we will have to implement 2 different step functions (1: Attacker, 2: Defender)
-        out_of_bounds_flag = self.attacker.step(action)
+        out_of_bounds_flag = self.attacker.step(action1)
         #if action < 5:
-        #    self.defender.step(action+4)
+        out_of_bounds_flag_defender = self.defender.step(action2)
         #else:
         #    self.defender.step(action-4)
         
@@ -78,13 +78,22 @@ class AdversarialEnv(Env):
         if out_of_bounds_flag:
             attacker_reward = -10
 
-        defender_reward = self.defender.reward_function([self.attacker.x, self.attacker.y])
+        defender_reward = self.defender.reward_function([self.attacker.x, self.attacker.y], [self.target.x, self.target.y])
+
+        if out_of_bounds_flag_defender:
+            defender_reward = -10
 
         self.state = np.array([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
 
-        self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.y, self.defender.y, self.target.x, self.target.y])
+        self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
 
-        return self.state, attacker_reward, False, None
+
+        if (self.attacker.x == self.target.x and self.attacker.y == self.target.y) or (self.attacker.x == self.target.x and self.defender.x == self.defender.y):
+            done = True
+        else:
+            done = False
+
+        return self.state, attacker_reward, done, None
 
     
     # def render(self):
@@ -100,7 +109,7 @@ class AdversarialEnv(Env):
     #     plt.show()
     def render(self):
         # This creates a single frame
-        video = np.zeros((20, 20, 3), dtype=np.uint8)
+        video = np.zeros((11, 11, 3), dtype=np.uint8)
         video[int(self.target.x)][int(self.target.y)] = d[Target_N]
         video[int(self.attacker.x)][int(self.attacker.y)] = d[Attacker_N]
         video[int(self.defender.x)][int(self.defender.y)] = d[Defender_N]
@@ -189,11 +198,11 @@ class Attacker():
         
         if total_defender_diff <= 0:
             reward -= 300
-            print('Reached Terminal State, the Attacker got the Goal!!!!!!')
+            print('Reached Terminal State, the Defender got the Attacker!!!!!!')
             print(reward)
         '''
         elif total_defender_diff <= 3:
-            reward -= 5
+            reward -= 10
         elif total_defender_diff <= 10:
             reward -= 1
         elif total_defender_diff <= 20:
@@ -201,7 +210,7 @@ class Attacker():
         elif total_defender_diff <= 25:
             reward -= 0.01
         '''
-        reward -= total_defender_diff
+        reward -= 0.5/(total_defender_diff+0.01)
         
         goal_diff_x = abs(goal[0]-self.x)
         goal_diff_y = abs(goal[1]-self.y)
@@ -214,80 +223,122 @@ class Attacker():
             print(reward)
         '''
         elif total_goal_diff <= 3:
-            reward += 5.1
+            reward += 11
         elif total_goal_diff <= 10:
-            reward += 1.1
+            reward += 5
         elif total_goal_diff <= 20:
-            reward += 0.2
+            reward += 0.1
         elif total_goal_diff <= 25:
-            reward += 0.02
+            reward += 0.01
         '''
-        reward += total_goal_diff
+        reward += 1/(total_goal_diff+0.1)
 
+        #print(total_defender_diff, total_goal_diff)
         
         return reward   
 
 class Defender():
     def __init__(self):
         # Set the initial position to (10, 10)
-        self.x = 11
-        self.y = 9
+        self.x = 6
+        self.y = 6
     
     def step(self, action):
+        if action == 0:
+            self.x += 0 
+            self.y += 1
+        elif action == 1:
+            self.x += 1 
+            self.y += 0
+        elif action == 2:
+            self.x += 1
+            self.y += 1
+        elif action == 3:
+            self.x -= 1 
+            self.y += 0
+        elif action == 4:
+            self.x -= 1 
+            self.y += 1
+        elif action == 5:
+            self.x -= 1 
+            self.y -= 1
+        elif action == 6:
+            self.x += 1 
+            self.y -= 1
+        elif action == 7:
+            self.x -= 0 
+            self.y -= 1
         
-        def step(self, action):
-            if action == 0:
-                self.x += 0 
-                self.y += 1
-            elif action == 1:
-                self.x += 1 
-                self.y += 0
-            elif action == 2:
-                self.x += 1
-                self.y += 1
-            elif action == 3:
-                self.x -= 1 
-                self.y += 0
-            elif action == 4:
-                self.x -= 1 
-                self.y += 1
-            elif action == 5:
-                self.x -= 1 
-                self.y -= 1
-            elif action == 6:
-                self.x += 1 
-                self.y -= 1
-            elif action == 7:
-                self.x -= 0 
-                self.y -= 1
+        if self.x < 0 or self.x > 10 or self.y < 0 or self.y > 10:
+            out_of_bounds_flag = True
+        else:
+            out_of_bounds_flag = False
 
-            if self.x < 0:
-                self.x = 0
-            elif self.x > 10:
-                self.x = 10
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 10:
+            self.x = 10
 
-            if self.y < 0:
-                self.y = 0
-            elif self.y > 10:
-                self.y = 10
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 10:
+            self.y = 10
 
-            return True
+        return out_of_bounds_flag
 
-    def reward_function(self, attacker):
+    def reward_function(self, attacker, goal):
         reward = 0
-        if (attacker[0]-self.x + attacker[1]-self.y) < 10:
-            reward += 1
-        elif (attacker[0]-self.x + attacker[1]-self.y) < 3:
-            reward += 5
-        elif (attacker[0]-self.x + attacker[1]-self.y) < 0:
+        defender_diff_x = abs(attacker[0]-self.x)
+        defender_diff_y = abs(attacker[1]-self.y)
+
+        total_defender_diff = math.sqrt(defender_diff_x**2 + defender_diff_y**2)
+        
+        if total_defender_diff <= 0:
             reward += 300
+            print('Reached Terminal State, the Defender got the Attacker!!!!!!')
+            print(reward)
+        '''
+        elif total_defender_diff <= 3:
+            reward -= 10
+        elif total_defender_diff <= 10:
+            reward -= 1
+        elif total_defender_diff <= 20:
+            reward -= 0.1
+        elif total_defender_diff <= 25:
+            reward -= 0.01
+        '''
+        reward += 1/(total_defender_diff+0.1)
+        
+        goal_diff_x = abs(goal[0]-attacker[0])
+        goal_diff_y = abs(goal[1]-attacker[1])
+
+        total_goal_diff = math.sqrt(goal_diff_x**2 + goal_diff_y**2)
+        
+        if total_goal_diff <= 0:
+            reward -= 300
+            print('Reached Terminal State, the Attacker got the Goal!!!!!!')
+            print(reward)
+        '''
+        elif total_goal_diff <= 3:
+            reward += 11
+        elif total_goal_diff <= 10:
+            reward += 5
+        elif total_goal_diff <= 20:
+            reward += 0.1
+        elif total_goal_diff <= 25:
+            reward += 0.01
+        '''
+        reward -= 1/(total_goal_diff+0.1)
+
+        print(total_defender_diff, total_goal_diff)
+        
         return reward
 
 class Target():
     def __init__(self):
         # Set the initial position to (19, 19)
-        self.x = np.random.randint(17, 20)
-        self.y = np.random.randint(17, 20)
+        self.x = np.random.randint(7, 10)
+        self.y = np.random.randint(7, 10)
 
 if __name__ == '__main__':
     env = AdversarialEnv()
