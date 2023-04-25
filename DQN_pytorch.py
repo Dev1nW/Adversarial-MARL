@@ -51,7 +51,7 @@ print(f"Is MPS available? {torch.backends.mps.is_available()}")
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using device: {device}")
 
-#if no MPS check for CUDA
+#if no MPS check for CUDA (Compute Unified Device Architecture, NVIDIA GPU architecture)
 if device == "cpu":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
