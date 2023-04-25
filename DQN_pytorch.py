@@ -47,14 +47,18 @@ def_alpha = 0.000001 # Defender Learning Rate
 print(f"Is MPS (Metal Performance Shader) built? {torch.backends.mps.is_built()}")
 print(f"Is MPS available? {torch.backends.mps.is_available()}")
 
-# Set the device      
+# Set device to MPS if exists       
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using device: {device}")
 
+#if no MPS check for CUDA
 if device == "cpu":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = "cpu"
+
 print(device)
+
+
+device = "cpu"
 # DQN setup
 # policy_net = DQN(n_states, n_actions).to(device)
 # target_net = DQN(n_states, n_actions).to(device)
