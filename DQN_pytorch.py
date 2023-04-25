@@ -1,5 +1,3 @@
-# I asked Chat GPT for tips and it said to try this 
-
 import numpy as np
 from env import AdversarialEnv
 import torch
