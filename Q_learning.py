@@ -1,11 +1,12 @@
 import numpy as np
 from env import AdversarialEnv
+import matplotlib.pyplot as plt
 # Define the environment
 # Git test 2
 
 env = AdversarialEnv()
-attempts = 10
-max_steps = 1000
+attempts = 500
+max_steps = 100
 n_states = 400  # Number of states
 n_actions = env.action_space.n  # Number of actions (0 for "left", 1 for "right")
 
@@ -16,7 +17,9 @@ epsilon = 0.1  # Epsilon for epsilon-greedy exploration
 q_learn = True
 EPS_DECAY = 0.9998
 
-
+num_T = 0
+num_L = 0
+num_W = 0
 SIZE = 20
 q_table_attacker = {}
 for i in range(-SIZE+1, SIZE):
@@ -72,12 +75,19 @@ for episode in range(attempts):
 
         if step >= max_steps:
             done = True
-            
 
         episode_reward1 += reward1
         step += 1
         env.plt_counter = step #this is for the matplot
         obs = new_obs
+
+        if done:
+            if obs[0] == obs[2] and obs[1] == obs[3]:
+                num_L += 1
+            elif obs[0] == obs[4] and obs[1] == obs[5]:
+                num_W += 1
+            else:
+                num_T += 1
         
         #print(episode_reward)
         episode_rewards1.append(episode_reward1)
@@ -87,5 +97,24 @@ for episode in range(attempts):
 
 #print(episode_rewards)
 
-env.print_episode_rewards(episode_rewards)
+# Plot the episode rewards over time
+plt.figure(figsize=(6, 6))  
+plt.plot(episode_rewards1)
+plt.xlabel("Episode")
+plt.ylabel("Episode Reward")
+plt.title("Attacker Reward per Episode")
+plt.show()
+
+# Plot the bar graph for game results
+plt.figure(figsize=(6, 6))  
+labels = ['Defender wins', 'Attacker wins', 'Ties']
+values = [num_L, num_W, num_T]
+colors = ['red', 'blue', 'gray']
+
+plt.bar(labels, values, color=colors)
+plt.title('Game Results')
+plt.xlabel('Result')
+plt.ylabel('Number of Games')
+plt.show()
+plt.pause(100000)
 

@@ -111,7 +111,7 @@ for episode in range(attempts):
     steps = 0
 
     while not done:
-        #env.render()
+        env.render()
 
         state_tensor = torch.tensor(obs, dtype=torch.float32, device=device).unsqueeze(0)
         with torch.no_grad():
