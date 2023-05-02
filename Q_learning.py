@@ -1,38 +1,39 @@
 import numpy as np
 from env import AdversarialEnv
 import matplotlib.pyplot as plt
-# Define the environment
-# Git test 2
 
+# Create the Environment
 env = AdversarialEnv()
-attempts = 500
-max_steps = 100
-n_states = 400  # Number of states
-n_actions = env.action_space.n  # Number of actions (0 for "left", 1 for "right")
 
-print(n_actions, n_states)
+attempts = 500 # Number of episodes 
+max_steps = 100 # Number of steps per episode
+n_states = 100  # Number of states
+n_actions = env.action_space.n  # Number of actions in the Environment
+
 gamma = 0.99  # Discount factor
 lr = 0.01  # Learning rate
 epsilon = 0.1  # Epsilon for epsilon-greedy exploration
-q_learn = True
 EPS_DECAY = 0.9998
 
-num_T = 0
-num_L = 0
-num_W = 0
-SIZE = 20
+# From the Attacker 
+num_T = 0 # Number of Ties
+num_L = 0 # Number of Losses
+num_W = 0 # Number of Wins 
+
+# Size of Grid 
+SIZE = 11
+
+# Create a Q Table for the Attacker 
 q_table_attacker = {}
 for i in range(-SIZE+1, SIZE):
     for ii in range(-SIZE+1, SIZE):
         q_table_attacker[(i, ii)] = [0 for i in range(8)]
 
+# Create a Q Table for the Defender
 q_table_defender = {}
 for i in range(-SIZE+1, SIZE):
     for ii in range(-SIZE+1, SIZE):
         q_table_defender[(i, ii)] = [0 for i in range(8)]
-
-
-env = AdversarialEnv()
 
 for episode in range(attempts):
     episode_rewards1 = []
@@ -48,14 +49,12 @@ for episode in range(attempts):
         defender = (obs[2], obs[3])
         
         if np.random.random() > epsilon:
-            # GET THE ACTION
             action1 = np.argmax(q_table_attacker[attacker])
             action2 = np.argmax(q_table_defender[defender])
         else:
             action1 = np.random.randint(0, 8)
             action2 = np.random.randint(0, 8)
 
-        #print(action)
         env.render()
         
         # Take the action!
@@ -78,7 +77,7 @@ for episode in range(attempts):
 
         episode_reward1 += reward1
         step += 1
-        env.plt_counter = step #this is for the matplot
+        env.plt_counter = step 
         obs = new_obs
 
         if done:
@@ -88,14 +87,10 @@ for episode in range(attempts):
                 num_W += 1
             else:
                 num_T += 1
-        
-        #print(episode_reward)
+
         episode_rewards1.append(episode_reward1)
         episode_rewards2.append(episode_reward2)
     epsilon *= EPS_DECAY
-
-
-#print(episode_rewards)
 
 # Plot the episode rewards over time
 plt.figure(figsize=(6, 6))  

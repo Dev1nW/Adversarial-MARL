@@ -13,11 +13,12 @@ class DQN(nn.Module):
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc3 = nn.Linear(hidden_size, output_size)
+        self.dropout = nn.Dropout()
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = self.dropout(self.fc3(x))
         return x
 
 
@@ -33,7 +34,7 @@ n_actions = env.action_space.n
 
 # DQN parameters
 gamma = 0.95 # Discount Factor (Larger = care more about future reward)
-alpha = 0.018 # Attacker Learning Rate
+alpha = 0.01 # Attacker Learning Rate
 epsilon = 0.1 # Randomization 
 epsilon_min = 0.01
 epsilon_decay = 0.2
@@ -41,7 +42,7 @@ batch_size = 32
 buffer_size = 10000
 update_target_frequency = 1000
 
-def_alpha = 0.000001 # Defender Learning Rate
+def_alpha = 0.018 # Defender Learning Rate
 
 # Check PyTorch has access to MPS (Metal Performance Shader, Apple's GPU architecture)
 print(f"Is MPS (Metal Performance Shader) built? {torch.backends.mps.is_built()}")
@@ -57,11 +58,7 @@ if device == "cpu":
 
 print(device)
 
-
-device = "cpu"
 # DQN setup
-# policy_net = DQN(n_states, n_actions).to(device)
-# target_net = DQN(n_states, n_actions).to(device)
 hidden_size = 6
 policy_net1 = DQN(6, hidden_size, n_actions).to(device)
 target_net1 = DQN(6, hidden_size, n_actions).to(device)
@@ -116,7 +113,7 @@ for episode in range(attempts):
     steps = 0
 
     while not done:
-        env.render()
+        #env.render()
 
         state_tensor = torch.tensor(obs, dtype=torch.float32, device=device).unsqueeze(0)
         with torch.no_grad():
@@ -146,7 +143,7 @@ for episode in range(attempts):
             action_batch1 = np.array(action_batch1)
             action_batch2 = np.array(action_batch2)
             reward_batch1 = np.array(reward_batch1)
-            reward_batch1 = np.array(reward_batch2)
+            reward_batch2 = np.array(reward_batch2)
             next_state_batch = np.array(next_state_batch)
             done_batch = np.array(done_batch)
 
@@ -161,7 +158,7 @@ for episode in range(attempts):
             # Compute the Q-values of the next states
             with torch.no_grad():
                 next_state_values1 = target_net1(next_state_batch).max(1)[0]
-                next_state_values2 = target_net1(next_state_batch).max(1)[0]
+                next_state_values2 = target_net2(next_state_batch).max(1)[0]
 
             # Compute the target Q-values
             target_q_values1 = reward_batch1 + gamma * next_state_values1 * (1 - done_batch)
@@ -207,11 +204,6 @@ for episode in range(attempts):
 
     # Decay epsilon for epsilon-greedy exploration
     epsilon = max(epsilon_min, epsilon * epsilon_decay)
-
-    #print(f"Episode {episode}: Reward for Attacker: {episode_reward1}")
-    #print(f"Episode {episode}: Reward for Defender: {episode_reward2}")
-
-#env.print_episode_rewards(episode_rewards)
 
 # Plot the episode rewards over time
 plt.figure(figsize=(6, 6))  

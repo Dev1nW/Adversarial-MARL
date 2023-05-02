@@ -1,32 +1,30 @@
 import numpy as np
-from PIL import Image  
-import cv2  
-import matplotlib.pyplot as plt  
-import time 
+from PIL import Image 
+import matplotlib.pyplot as plt 
 from gym import Env
 from gym.spaces import Discrete, Box
-from IPython.display import display, clear_output
 import math
-#pygame
+
 
 
 epsilon = 0.3  # randomness
-EPS_DECAY = 0.995  # How fast/slow we want to perform random actions
+EPS_DECAY = 0.995  # Decay on the randomness
+#as we continue training we assume policy will be good and will need to take less random actions
 
-LEARNING_RATE = 0.01
-DISCOUNT = 0.95
+LEARNING_RATE = 0.01 
+DISCOUNT = 0.95 # Hoe much we care about future rewards
 
 Attacker_N = 1  # Attacker key in dict
 Target_N = 2  # Target key in dict
 Defender_N = 3  # Defender key in dict
 
-d = {1: (0, 0, 255),  # Attacker (red)
-     2: (0, 255, 0),  # Target (green)
-     3: (255, 175, 0)}  # Defender (blue)
+d = {1: (0, 0, 255),  # Attacker (Orange)
+     2: (0, 255, 0),  # Target (Green)
+     3: (255, 175, 0)}  # Defender (Blue)
 
 class AdversarialEnv(Env):
     def __init__(self):
-        # Create the edge parameters for our Box Environmnet
+        # Create the edge parameters for our Box Environmnet 10x10 grid
         self.x_min = 0
         self.x_max = 10
         self.y_min = 0
@@ -38,12 +36,6 @@ class AdversarialEnv(Env):
         #Create the Observation Space using our provided edge parameters
         self.observation_space = Box(low=np.array([self.x_min, self.y_min]), high=np.array([self.x_max, self.y_max]))
 
-        self.render_obs = []
-        
-        self.initial_diff_defender = 0
-        self.initial_diff_goal = 0
-        
-
         plt.ion() #this is for the plotting 
         self.fig = None
         self.ax = None
@@ -51,7 +43,6 @@ class AdversarialEnv(Env):
 
     def reset(self):
 
-        self.render_obs = []
         #Define our attacker, defender and target
         self.attacker = Attacker()
         self.defender = Defender()
@@ -59,20 +50,21 @@ class AdversarialEnv(Env):
 
         self.state = np.array([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
 
-        #self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.y, self.defender.y, self.target.x, self.target.y])
-        self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y]) #fixed a typo for self.defender.x
-
-
         return self.state
 
     def step(self, action1, action2):
         # This will be where we will have to implement 2 different step functions (1: Attacker, 2: Defender)
+        # We want to provide a negative reward for if the agent leaves the box to discourage out of bounds actions
+        # So we create a flag for the attacker and defender
+
         out_of_bounds_flag = self.attacker.step(action1)
-        #if action < 5:
-        out_of_bounds_flag_defender = self.defender.step(action2)
-        #else:
-        #    self.defender.step(action-4)
         
+        out_of_bounds_flag_defender = self.defender.step(action2)
+
+        if self.defender.x == self.target.x and self.defender.y == self.target.y:
+            self.defender.x -= 1
+        
+        #Get rewards for attacker and defender
         attacker_reward = self.attacker.reward_function([self.defender.x, self.defender.y], [self.target.x, self.target.y])
 
         if out_of_bounds_flag:
@@ -85,9 +77,7 @@ class AdversarialEnv(Env):
 
         self.state = np.array([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
 
-        self.render_obs.append([self.attacker.x, self.attacker.y, self.defender.x, self.defender.y, self.target.x, self.target.y])
-
-
+        # Set done conditions
         if (self.attacker.x == self.target.x and self.attacker.y == self.target.y) or (self.attacker.x == self.defender.x and self.attacker.y == self.defender.y):
             done = True
         else:
@@ -113,20 +103,7 @@ class AdversarialEnv(Env):
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
         plt.pause(0.01)
-        #self.plt_counter += 1
-
-    # def print_episode_rewards(self, episode_rewards):
-    #     plt.figure(figsize=(6, 6))  
-    #     plt.plot(episode_rewards)
-    #     plt.xlabel("Episode")
-    #     plt.ylabel("Episode Reward")
-    #     plt.title("Episode Rewards Over Time")
-    #     plt.show()
-    #    # plt.waitforbuttonpress()
-    #     #plt.pause(inf)
-    #     plt.pause(100000)
-
-
+        
 class Attacker():
     def __init__(self):
         # Set the initial position to (0, 0)
@@ -179,6 +156,8 @@ class Attacker():
         return out_of_bounds_flag
         
     def reward_function(self, defender, goal):
+        # We define our reward function to be the inverse distance between the agent and its goal/adversary
+
         reward = 0
         defender_diff_x = abs(defender[0]-self.x)
         defender_diff_y = abs(defender[1]-self.y)
@@ -189,16 +168,7 @@ class Attacker():
             reward -= 300
             print('Reached Terminal State, the Defender got the Attacker!!!!!!')
             #print(reward)
-        '''
-        elif total_defender_diff <= 3:
-            reward -= 10
-        elif total_defender_diff <= 10:
-            reward -= 1
-        elif total_defender_diff <= 20:
-            reward -= 0.1
-        elif total_defender_diff <= 25:
-            reward -= 0.01
-        '''
+        
         reward -= 1/(total_defender_diff+0.01)
         
         goal_diff_x = abs(goal[0]-self.x)
@@ -210,19 +180,8 @@ class Attacker():
             reward += 300
             print('Reached Terminal State, the Attacker got the Goal!!!!!!')
             #print(reward)
-        '''
-        elif total_goal_diff <= 3:
-            reward += 11
-        elif total_goal_diff <= 10:
-            reward += 5
-        elif total_goal_diff <= 20:
-            reward += 0.1
-        elif total_goal_diff <= 25:
-            reward += 0.01
-        '''
+        
         reward += 1/(total_goal_diff+0.1)
-
-        #print(total_defender_diff, total_goal_diff)
         
         return reward   
 
@@ -284,18 +243,7 @@ class Defender():
         
         if total_defender_diff <= 0:
             reward += 300
-            #print('Reached Terminal State, the Defender got the Attacker!!!!!!')
-            #print(reward)
-        '''
-        elif total_defender_diff <= 3:
-            reward -= 10
-        elif total_defender_diff <= 10:
-            reward -= 1
-        elif total_defender_diff <= 20:
-            reward -= 0.1
-        elif total_defender_diff <= 25:
-            reward -= 0.01
-        '''
+            
         reward += 1/(total_defender_diff+0.1)
         
         goal_diff_x = abs(goal[0]-attacker[0])
@@ -305,54 +253,31 @@ class Defender():
         
         if total_goal_diff <= 0:
             reward -= 300
-            #print('Reached Terminal State, the Attacker got the Goal!!!!!!')
-            #print(reward)
-        '''
-        elif total_goal_diff <= 3:
-            reward += 11
-        elif total_goal_diff <= 10:
-            reward += 5
-        elif total_goal_diff <= 20:
-            reward += 0.1
-        elif total_goal_diff <= 25:
-            reward += 0.01
-        '''
 
         reward -= 1/(total_goal_diff+0.1)
-
-        #print(total_defender_diff, total_goal_diff)
         
         return reward
 
 class Target():
     def __init__(self):
-        # Set the initial position to (19, 19)
-        self.x = 10#np.random.randint(7, 10)
-        self.y = 10#np.random.randint(7, 10)
+        # Set the initial position to (10, 10)
+        self.x = 10
+        self.y = 10
 
 if __name__ == '__main__':
+    # Basic script to cofirm code is working properly
     env = AdversarialEnv()
 
-    episode_rewards = []
-
     for episode in range(1):
-        
         obs = env.reset()
-        episode_reward = 0
-
         step = 0
-        while step <= 5:
+        while step <= 100:
 
-            action = np.random.randint(0, 7)
-            # Take the action!
-            new_obs, reward, done, _ = env.step(action)     
-            # ^This will have to be something like 
-            # attacker_obs, attacker_reward, done, _ = env.attacker.step(action)  
-            # defender_obs, defender_reward, done, _ = env.defender.step(action) 
+            action1 = np.random.randint(0, 7)
+            action2 = np.random.randint(0, 7)
+            
+            new_obs, reward1, reward2, done, _ = env.step(action1, action2)     
+
             env.render()
 
-            episode_reward += reward
-
             step += 1
-
-        print('Episode Reward: {}'.format(episode_reward))
