@@ -14,4 +14,4 @@ If we wanted to increase our performance for either model we could do centralize
 
 Due to the nature of our problem, we expect the results to roughly be 50/50 for if the Attacker wins or loses. It would also make since for the Attacker to have a slightly higher win percentage due to the fact that the Target is not moving, while the Defender will be trying to catch the attacker. What we see from our results is that we were correct in our assumptions and can see in the figure below shows that the Attacker will win ~65% and lose ~35%. 
 
-![](Image/boxGraph.png)
+![](Images/boxGraph.png)
