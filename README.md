@@ -4,14 +4,18 @@ This repository is for our Final Project in Network Multi-Agent Systems. It is b
 
 ## What is unique about this project
 
-In this project we wanted to see how performance would be impacted by decentralized training and execution. What we mean by this is that we have 3 Agents, an Attacker, Defender and a Target. For the current case, the Target is stationary and predefined. However, the Attacker and Defender are trained individually and have rewards inverse to the distance from their goal/opponent. For example, the Attacker will gain a larger reward as it gets close to the Target but will gain a larger negative reward as it gets closer to the defender. 
+In this project we wanted to see how performance would be impacted by decentralized training and execution. In our case we have 3 players, an Attacker, Defender and Target. The Attacker and Defender are agents that are trying to learn an objective. The Target is held constant for training. When we refer to decentralized training and execution we are saying that the Attacker has no knowledge of the defender or the target location aside from the reward function and the Defender has no knowledge of the Attackers or Targets location. In doing so we can create a reward function which is the inverse of the distance to the respective goal. For example as the Attacker approaches the Defender it will get an increasing negative reward and as it approaches the Target it will get an increasingly positive reward.
 
 ## Future possible work?
 
-If we wanted to increase our performance for either model we could do centralized training and decentralized execution. We could also give more information to the agent or even learn from a CNN rather than just Dense layers. 
+If we wanted to increase our performance for either model we could do centralized training and decentralized execution. We could also give more information to the agent or even learn from a CNN rather than just Dense layers. Lastly, we could do training seperate for the Attacker and Defender, currently they are trained at the same time. 
 
 ## What are some results?
 
-Due to the nature of our problem, we expect the results to roughly be 50/50 for if the Attacker wins or loses. It would also make since for the Attacker to have a slightly higher win percentage due to the fact that the Target is not moving, while the Defender will be trying to catch the attacker. What we see from our results is that we were correct in our assumptions and can see in the figure below shows that the Attacker will win ~65% and lose ~35%. 
+Due to the nature of our problem, we expected the results to roughly be 50/50 for if the Attacker wins or loses. However, due to the fact that the Target is stationary the Attacker should win more, this is because the Attacker can learn to go to one location while making an educated expectiontion on avoiding the Defender. While the Defender must learn to predict the Attackers movements. What we see from our results is that we were correct in our assumptions and can see in the figure below shows that the Attacker will win ~65% and lose ~35%. 
 
-![](Images/boxGraph.png)
+<p align="center">
+
+  <img src="Images/boxGraph.png">
+
+</p>
