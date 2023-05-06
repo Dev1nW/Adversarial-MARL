@@ -9,10 +9,7 @@ import math
 
 epsilon = 0.3  # randomness
 EPS_DECAY = 0.995  # Decay on the randomness
-#as we continue training we assume policy will be good and will need to take less random actions
-
-LEARNING_RATE = 0.01 
-DISCOUNT = 0.95 # Hoe much we care about future rewards
+# as we continue training we assume policy will be good and will need to take less random actions
 
 Attacker_N = 1  # Attacker key in dict
 Target_N = 2  # Target key in dict
@@ -242,7 +239,7 @@ class Defender():
         total_defender_diff = math.sqrt(defender_diff_x**2 + defender_diff_y**2)
         
         if total_defender_diff <= 0:
-            reward += 300
+            reward += 300 # if the def reachers attacker
             
         reward += 1/(total_defender_diff+0.1)
         
@@ -252,7 +249,7 @@ class Defender():
         total_goal_diff = math.sqrt(goal_diff_x**2 + goal_diff_y**2)
         
         if total_goal_diff <= 0:
-            reward -= 300
+            reward -= 300 # if attacker gets to goal, large negative reward 
 
         reward -= 1/(total_goal_diff+0.1)
         
