@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Create the Environment
 env = AdversarialEnv()
 
-attempts = 500 # Number of episodes 
+attempts = 1000 # Number of episodes 
 max_steps = 100 # Number of steps per episode
 n_states = 100  # Number of states
 n_actions = env.action_space.n  # Number of actions in the Environment
@@ -55,7 +55,7 @@ for episode in range(attempts):
             action1 = np.random.randint(0, 8)
             action2 = np.random.randint(0, 8)
 
-        env.render()
+        #env.render()
         
         # Take the action!
         new_obs, reward1, reward2, done, _ = env.step(action1, action2)
